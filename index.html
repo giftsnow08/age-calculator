@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .calculator-title {
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #birthDate {
+            width: 100%;
+            padding: 0.85rem 2.5rem 0.85rem 1rem;
+            font-size: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: #333;
+            font-family: inherit;
+        }
+
+        #birthDate:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #birthDate::placeholder {
+            color: #999;
+        }
+
+        /* Hide the default calendar icon */
+        #birthDate::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .calendar-icon {
+            position: absolute;
+            right: 1rem;
+            font-size: 18px;
+            color: #667eea;
+            pointer-events: none;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 0.85rem 1.5rem;
+            font-size: 15px;
+            font-weight: 600;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .calculate-btn:hover {
+            background: #5568d3;
+        }
+
+        .calculate-btn:active {
+            transform: scale(0.98);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .result-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .detail-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="calculator-title">Age Calculator</h1>
+
+        <form id="ageForm">
+            <div class="form-group">
+                <label class="form-label">Enter your birth date:</label>
+                <div class="input-wrapper">
+                    <!-- IMPORTANT: Use type="date" NOT readonly -->
+                    <input type="date" id="birthDate">
+                    <span class="calendar-icon">📅</span>
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+            </div>
+
+            <button type="submit" class="calculate-btn">Calculate</button>
+        </form>
+
+        <div id="resultBox" class="result-box">
+            <div class="result-text" id="resultText"></div>
+            <div class="result-details" id="resultDetails"></div>
+        </div>
+    </div>
+
+    <!-- Load Luxon from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.1/luxon.min.js"></script>
+
+    <script>
+        const { DateTime } = luxon;
+
+        const form = document.getElementById('ageForm');
+        const birthDateInput = document.getElementById('birthDate');
+        const resultBox = document.getElementById('resultBox');
+        const resultText = document.getElementById('resultText');
+        const resultDetails = document.getElementById('resultDetails');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        // Set max date to today (prevent future dates)
+        const today = new Date();
+        const maxDate = today.toISOString().split('T')[0];
+        birthDateInput.max = maxDate;
+
+        // Show success message when date is selected
+        birthDateInput.addEventListener('change', function () {
+            if (this.value) {
+                const [year, month, day] = this.value.split('-');
+                successMessage.textContent = `✓ Selected: ${day}/${month}/${year}`;
+                successMessage.classList.add('show');
+                errorMessage.classList.remove('show');
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validation: Check if date was selected
+            if (!birthDateInput.value) {
+                errorMessage.textContent = '❌ Please select a birth date';
+                errorMessage.classList.add('show');
+                resultBox.classList.remove('show');
+                return;
+            }
+
+            const birthDateValue = birthDateInput.value; // YYYY-MM-DD format
+            const birthDate = DateTime.fromISO(birthDateValue);
+            const now = DateTime.now();
+
+            // Validation: Check if date is in the future
+            if (birthDate > now) {
+                errorMessage.textContent = '❌ Birth date cannot be in the future';
+                errorMessage.classList.add('show');
+                resultBox.classList.remove('show');
+                return;
+            }
+
+            // Calculate age
+            const age = calculateAge(birthDate, now);
+
+            // Display result
+            displayResult(age);
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+        });
+
+        // Calculate exact age
+        function calculateAge(birthDate, today) {
+            let years = today.year - birthDate.year;
+            let months = today.month - birthDate.month;
+            let days = today.day - birthDate.day;
+
+            // Adjust for negative days
+            if (days < 0) {
+                months--;
+                const lastMonth = today.minus({ months: 1 });
+                days += lastMonth.daysInMonth;
+            }
+
+            // Adjust for negative months
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            return { years, months, days };
+        }
+
+        // Display results
+        function displayResult(age) {
+            const { years, months, days } = age;
+
+            const parts = [];
+            if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+            if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+            if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+
+            resultText.textContent = `You are ${parts.join(', ')} old`;
+
+            resultDetails.innerHTML = `
+        <div class="detail-item">
+          <div class="detail-number">${years}</div>
+          <div class="detail-label">Years</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-number">${months}</div>
+          <div class="detail-label">Months</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-number">${days}</div>
+          <div class="detail-label">Days</div>
+        </div>
+      `;
+
+            resultBox.classList.add('show');
+        }
+    </script>
+</body>
+
+</html>

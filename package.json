@@ -1,0 +1,25 @@
+{
+  "name": "age-calculator",
+  "version": "1.0.0",
+  "description": "https://roadmap.sh/projects/age-calculator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giftsnow08/age-calculator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/giftsnow08/age-calculator/issues"
+  },
+  "homepage": "https://github.com/giftsnow08/age-calculator#readme",
+  "dependencies": {
+    "js-datepicker": "^5.18.4",
+    "luxon": "^3.7.2"
+  }
+}
